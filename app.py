@@ -6,7 +6,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import RetrievalQA
 import fitz
 
-pdf_directory = "D:\System.s\Langchain-projects\langchain-pdf\source_documents"
+pdf_directory = "pdf_folder"
 embeddings_model_name = "all-MiniLM-L6-v2"
 persist_directory = "persist_directory"
 
