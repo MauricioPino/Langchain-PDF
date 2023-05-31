@@ -1,52 +1,63 @@
-from dotenv import load_dotenv
-import streamlit as st
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chains.question_answering import load_qa_chain
-from langchain.llms import OpenAI
-from langchain.callbacks import get_openai_callback
+import os
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import Chroma
+from langchain.llms import GPT4All
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains import RetrievalQA
+import fitz
+
+# Ruta al directorio de documentos PDF
+pdf_directory = "pdf_reports"
+
+# Nombre del modelo de embeddings
+embeddings_model_name = "bert-base-uncased"
+
+# Ruta al directorio persistente para almacenar el vectorstore
+persist_directory = "persist_directory"
 
 def main():
-    load_dotenv()
-    st.set_page_config(page_title="Ask a question to PDF")
-    st.header("ASK_PDF_APP 💬")
-    
-    # upload the PDF
-    pdf = st.file_uploader("Upload your PDF", type="pdf")
-    
-    if pdf is not None:
-      pdf_reader = PdfReader(pdf)
-      text = ""
-      for page in pdf_reader.pages:
-        text += page.extract_text()
-        
-      # split into chunks
-      text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-      )
-      chunks = text_splitter.split_text(text)
-      
-      # create embeddings
-      embeddings = OpenAIEmbeddings()
-      knowledge_base = FAISS.from_texts(chunks, embeddings)
+    # Crear instancias de los componentes necesarios
+    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
+    db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
 
-      user_question = st.text_input("Ask a question about your PDF:")
-      if user_question:
-        docs = knowledge_base.similarity_search(user_question)
-        
-        llm = OpenAI()
-        chain = load_qa_chain(llm, chain_type="stuff")
-        with get_openai_callback() as cb:
-          response = chain.run(input_documents=docs, question=user_question)
-          print(cb)
-           
-        st.write(response)
-    
+    # Upload documents from folder
+    documents = []
+    for filename in os.listdir(pdf_directory):
+        if filename.endswith(".pdf"):
+            file_path = os.path.join(pdf_directory, filename)
+            document = load_pdf(file_path)
+            documents.append(document)
 
-if __name__ == '__main__':
+    # Divide the elements in chunks
+    chunks = db.text_splitter.split_documents(documents)
+
+    llm = GPT4All(model="gpt2", n_ctx=1024, backend='gptj', callbacks=[StreamingStdOutCallbackHandler()])
+
+    retriever = db.as_retriever(search_kwargs={"k": 4})
+    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
+
+    while True:
+        query = input("Ask a question, or write 'exit': ")
+        if query == "exit":
+            break
+
+        res = qa(query, chunks)
+        answer = res['result']
+
+        print("\n> Ask the question:")
+        print(query)
+        print("\n> Answer:")
+        print(answer)
+
+def load_pdf(file_path):
+    doc = fitz.open(file_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+
+    return text
+
+if __name__ == "__main__":
     main()
+
+
