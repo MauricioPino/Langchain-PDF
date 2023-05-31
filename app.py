@@ -6,12 +6,11 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import RetrievalQA
 import fitz
 
-pdf_directory = "pdf_reports"
+pdf_directory = "D:\System.s\Langchain-projects\langchain-pdf\source_documents"
 embeddings_model_name = "all-MiniLM-L6-v2"
 persist_directory = "persist_directory"
 
 def main():
-    # Crear instancias de los componentes necesarios
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
     db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
 
