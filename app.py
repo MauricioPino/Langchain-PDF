@@ -6,13 +6,8 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import RetrievalQA
 import fitz
 
-# Ruta al directorio de documentos PDF
 pdf_directory = "pdf_reports"
-
-# Nombre del modelo de embeddings
-embeddings_model_name = "bert-base-uncased"
-
-# Ruta al directorio persistente para almacenar el vectorstore
+embeddings_model_name = "all-MiniLM-L6-v2"
 persist_directory = "persist_directory"
 
 def main():
