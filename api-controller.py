@@ -1,5 +1,7 @@
-from flask import Flask, request
-from privateGPT import PrivateGPT
+from flask import Flask, jsonify, request
+import privateGPT
+import ingest
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -21,13 +23,38 @@ def generate_image():
     text = file.read().decode('utf-8')
 
     # Instance
-    gpt = PrivateGPT()
+    gpt = privateGPT
 
     # Refactor this part... include..
     image = gpt.generate_image_from_text(text)
 
     # Return the image and 200 OK.
     return image, 200
+
+@app.route("/upload", methods=["POST"])
+def upload_file():
+    if "file" not in request.files:
+        return jsonify({"error": "File is null"})
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "Filename is empty"})
+
+    filename = secure_filename(file.filename)
+    file.save(f"source_documents/{filename}")
+
+    ing = ingest
+    ing.main()
+
+    return jsonify({"message": "File was processed and the model was trained succesfully!"}, 200)
+
+
+@app.route("/ask-question", methods=["POST"])
+def ask_question():
+
+    gpt = privateGPT
+    gpt.main
 
 if __name__ == '__main__':
     app.run()

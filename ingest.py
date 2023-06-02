@@ -25,9 +25,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 from constants import CHROMA_SETTINGS
 
-
 load_dotenv()
-
 
 # Load environment variables
 persist_directory = os.environ.get('PERSIST_DIRECTORY')
@@ -36,13 +34,12 @@ embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME')
 chunk_size = 500
 chunk_overlap = 50
 
-
 # Custom document loaders
 class MyElmLoader(UnstructuredEmailLoader):
-    """Wrapper to fallback to text/plain when default does not work"""
 
+    print("""Wrapper to fallback to text/plain when default does not work""")
     def load(self) -> List[Document]:
-        """Wrapper adding fallback for elm without html"""
+        print("""Wrapper adding fallback for elm without html""")
         try:
             try:
                 doc = UnstructuredEmailLoader.load(self)
@@ -91,9 +88,7 @@ def load_single_document(file_path: str) -> Document:
 
 
 def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
-    """
-    Loads all documents from the source documents directory, ignoring specified files
-    """
+    print("Loads all documents from the source documents directory, ignoring specified files")
     all_files = []
     for ext in LOADER_MAPPING:
         all_files.extend(
@@ -111,9 +106,7 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     return results
 
 def process_documents(ignored_files: List[str] = []) -> List[Document]:
-    """
-    Load documents and split in chunks
-    """
+    print("Load documents and split in chunks")
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files)
     if not documents:
@@ -125,10 +118,8 @@ def process_documents(ignored_files: List[str] = []) -> List[Document]:
     print(f"Split into {len(texts)} chunks of text (max. {chunk_size} tokens each)")
     return texts
 
-def does_vectorstore_exist(persist_directory: str) -> bool:
-    """
-    Checks if vectorstore exists
-    """
+def does_vectorstore_exist(persist_directory: str) -> bool: #2
+    print("Checks if vectorstore exists")
     if os.path.exists(os.path.join(persist_directory, 'index')):
         if os.path.exists(os.path.join(persist_directory, 'chroma-collections.parquet')) and os.path.exists(os.path.join(persist_directory, 'chroma-embeddings.parquet')):
             list_index_files = glob.glob(os.path.join(persist_directory, 'index/*.bin'))
@@ -138,10 +129,10 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
                 return True
     return False
 
-def main():
+def main(): #2
     # Create embeddings
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
-
+    print("Main processing...")
     if does_vectorstore_exist(persist_directory):
         # Update and store locally vectorstore
         print(f"Appending to existing vectorstore at {persist_directory}")
