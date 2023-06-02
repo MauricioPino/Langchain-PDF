@@ -31,7 +31,7 @@ def generate_image():
     # Return the image and 200 OK.
     return image, 200
 
-@app.route("/upload", methods=["POST"])
+@app.route("/upload-file", methods=["POST"])
 def upload_file():
     if "file" not in request.files:
         return jsonify({"error": "File is null"})
