@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import privateGPT
+from ingest import main
 import ingest
 from werkzeug.utils import secure_filename
 
@@ -44,17 +45,16 @@ def upload_file():
     filename = secure_filename(file.filename)
     file.save(f"source_documents/{filename}")
 
-    ing = ingest
-    ing.main()
+    print("Ingest process is starting...")
+    main()
 
     return jsonify({"message": "File was processed and the model was trained succesfully!"}, 200)
 
 
-@app.route("/ask-question", methods=["POST"])
-def ask_question():
-
-    gpt = privateGPT
-    gpt.main
+#@app.route("/ask-question", methods=["POST"])
+#def ask_question():
+#    gpt = privateGPT
+#    gpt.main()
 
 if __name__ == '__main__':
     app.run()
