@@ -11,7 +11,7 @@ def generate_image():
 
     file = request.files['file']
 
-    # Checking if the file has a valid extension
+    # Checking if the file has a valid extension 
     if file.filename == '':
         return 'The file is null', 400
     if not file.filename.endswith('.txt'):
