@@ -1,0 +1,4 @@
+load single document
+load documents
+processdocument
+vectorexist
