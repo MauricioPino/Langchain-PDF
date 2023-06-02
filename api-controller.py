@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
-import privateGPT
-from ingest import main
-import ingest
+from privateGPT import main as mainPrivateGPT
+from ingest import main as mainIngest
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -24,7 +23,7 @@ def generate_image():
     text = file.read().decode('utf-8')
 
     # Instance
-    gpt = privateGPT
+    gpt = None
 
     # Refactor this part... include..
     image = gpt.generate_image_from_text(text)
@@ -46,15 +45,20 @@ def upload_file():
     file.save(f"source_documents/{filename}")
 
     print("Ingest process is starting...")
-    main()
+    mainIngest()
 
-    return jsonify({"message": "File was processed and the model was trained succesfully!"}, 200)
+    return jsonify({"message": "File was processed and the model was trained succesfully!"})
 
+@app.route("/ask-question", methods=["POST"])
+def ask_question():
 
-#@app.route("/ask-question", methods=["POST"])
-#def ask_question():
-#    gpt = privateGPT
-#    gpt.main()
+    request_body = request.get_json()
+    question = request_body.get('question')
+
+    print("privateGPT is starting...")
+    answer = mainPrivateGPT(question)
+
+    return jsonify({"answer": answer})
 
 if __name__ == '__main__':
     app.run()
